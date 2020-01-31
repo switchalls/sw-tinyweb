@@ -1,4 +1,4 @@
-package sw.tinyweb;
+package sw.tinyweb.standalone;
 
 import java.io.File;
 
@@ -7,6 +7,9 @@ import javax.servlet.ServletContextListener;
 
 import org.apache.log4j.Logger;
 
+import sw.tinyweb.ExecutionOptions;
+import sw.tinyweb.TinyWebServer;
+import sw.tinyweb.TinyWebServletConfig;
 import sw.tinyweb.servlets.AboutTinyWebServlet;
 import sw.tinyweb.servlets.DownloadFileServlet;
 

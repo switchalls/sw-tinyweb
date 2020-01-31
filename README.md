@@ -17,7 +17,7 @@ INFO  [main, Main] contextInitialized(javax.servlet.ServletContextEvent[source=s
 INFO  [main, TinyWebServer] Starting web server on port 8080
 ```
 
-Runs `tinyweb` using `sw.tinyweb.Main`
+Runs `tinyweb` using `sw.tinyweb.standalone.Main`
 
 ## Testing
 
