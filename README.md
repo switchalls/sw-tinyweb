@@ -2,15 +2,22 @@
 
 A simple HTTP 1.1 server designed for use on low powered embedded platforms.
 
+## Building
+
+```bash
+mvn clean install
+```
+
 ## Run standalone server
 
 ```bash
-$ mvn clean install
 $ java -jar target/sw-tinyweb-0.0.1-SNAPSHOT-jar-with-dependencies.jar 8080 ./WebContent
 
 INFO  [main, Main] contextInitialized(javax.servlet.ServletContextEvent[source=sw.tinyweb.TinyWebServletContext@9807454])
 INFO  [main, TinyWebServer] Starting web server on port 8080
 ```
+
+Runs `tinyweb` using `sw.tinyweb.Main`
 
 ## Testing
 
