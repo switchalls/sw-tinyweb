@@ -56,13 +56,16 @@ public class DownloadFileServlet extends HttpServlet
 		}
 		
 		final long ifModifiedSince = aRequest.getDateHeader(IF_MODIFIED_SINCE);
-		if ((lastModified / 1000) <= (ifModifiedSince / 1000)) // ignore milli-seconds
+		if (ifModifiedSince > -1)
 		{
-			LOGGER.info( "Resource not modified: " + resourcePath );
-			aResponse.sendError( HttpServletResponse.SC_NOT_MODIFIED, "Not Modified" );
-			return;
+			if ((lastModified / 1000) <= (ifModifiedSince / 1000)) // ignore milli-seconds
+			{
+				LOGGER.info( "Resource not modified: " + resourcePath );
+				aResponse.sendError( HttpServletResponse.SC_NOT_MODIFIED, "Not Modified" );
+				return;
+			}
 		}
-		
+
 		final InputStream in = context.getResourceAsStream( resourcePath );
 		assert(in != null);
 				

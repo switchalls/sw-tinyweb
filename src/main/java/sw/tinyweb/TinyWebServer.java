@@ -190,7 +190,7 @@ public class TinyWebServer implements Runnable
 			name = this.servletMappings.get( "*" );
 		}
 		
-		return (name != null) ? this.servletConfigs.get(name) : null;
+		return this.servletConfigs.get(name);
 	}
 
 	/**
