@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<note xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="note.xsd"
+      id="1" >
+
+	<to>Tove</to>
+	<from>Jani</from>
+	<heading>Reminder</heading>
+	<body>
+		Don't
+		<![CDATA[ forget ]]>
+		me
+		<![CDATA[ this weekend!]]>
+	</body>
+</note> 
