@@ -1,10 +1,13 @@
 package sw.tinyweb.utils;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import junit.framework.TestCase;
+import org.junit.Test;
 
 /**
  * <code>JsonWriter</code> test suite.
@@ -20,15 +23,10 @@ import junit.framework.TestCase;
  * @author $Author: $ 
  * @version $Revision: $
  */
-public class JsonBuilderTest extends TestCase
+public class JsonBuilderTest
 {
-	/**
-	 * Typical usage.
-	 * 
-	 * @throws Exception when the test should be aborted
-	 */
-	public void testTypicalUsage()
-	throws Exception
+	@Test
+	public void testTypicalUsage() throws Exception
 	{
 		final JsonBuilder builder = new JsonBuilder();
 		builder.openRecord("record_1");
@@ -42,13 +40,8 @@ public class JsonBuilderTest extends TestCase
 		assertEquals(expected, builder.toString());
 	}
 
-	/**
-	 * Append content verbatim.
-	 * 
-	 * @throws Exception when the test should be aborted
-	 */
-	public void testGenericAppend()
-	throws Exception
+	@Test
+	public void testGenericAppend() throws Exception
 	{
 		final JsonBuilder builder = new JsonBuilder();
 		builder.append("hello");
@@ -56,13 +49,8 @@ public class JsonBuilderTest extends TestCase
 		assertEquals("{hello}", builder.toString());
 	}
 
-	/**
-	 * Property values.
-	 * 
-	 * @throws Exception when the test should be aborted
-	 */
-	public void testProperties_Date()
-	throws Exception
+	@Test
+	public void testProperties_Date() throws Exception
 	{
 		final Date d = new Date();
 		
@@ -80,13 +68,8 @@ public class JsonBuilderTest extends TestCase
 		assertEquals(d, copy);
 	}
 
-	/**
-	 * Property values.
-	 * 
-	 * @throws Exception when the test should be aborted
-	 */
-	public void testProperties_Double()
-	throws Exception
+	@Test
+	public void testProperties_Double() throws Exception
 	{
 		final JsonBuilder builder = new JsonBuilder();
 		builder.setProperty("d", 2.2D);
@@ -94,13 +77,8 @@ public class JsonBuilderTest extends TestCase
 		assertEquals("{'d':2.2}", builder.toString());
 	}
 
-	/**
-	 * Property values.
-	 * 
-	 * @throws Exception when the test should be aborted
-	 */
-	public void testProperties_String()
-	throws Exception
+	@Test
+	public void testProperties_String() throws Exception
 	{
 		final JsonBuilder builder = new JsonBuilder();
 		builder.setProperty("s", "a'b'c");
