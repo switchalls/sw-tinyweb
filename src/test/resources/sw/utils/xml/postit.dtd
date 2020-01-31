@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!ELEMENT postit (from,message)>
-<!ATTLIST postit postit-id CDATA #REQUIRED>
-
-<!ELEMENT from    (#PCDATA)>
-<!ELEMENT message (#PCDATA)>

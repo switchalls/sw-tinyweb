@@ -9,13 +9,13 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.jdom2.Document;
+import org.jdom2.input.SAXBuilder;
+import org.jdom2.output.XMLOutputter;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import sw.utils.xml.DOMDocument;
-import sw.utils.xml.XMLException;
 
 /**
  * Write XML document as a JSON stream.
@@ -152,171 +152,11 @@ public class JsonWriter
 	 */
 	public void printXmlDocument(InputStream aXML)
 	throws Exception
-	{		
-		final DOMDocument doc = new DOMDocument();
-		doc.loadDocument( "XML", aXML, false );
-		
-		this.print( doc, doc.getRootNode() );
+	{
+		final Document doc = new SAXBuilder().build(aXML);
+		new XMLOutputter().output(doc, this.writer);
 	}
-	
-	/**
-	 * Convert the XML document into a JSON stream.
-	 * 
-	 * @param aDoc The XML document
-	 * @param aNode The node inside the XML document
-	 * @throws XMLException when a problem occurs
-	 */
-	public void print(DOMDocument aDoc, Node aNode)
-	throws XMLException
-	{		
-		this.writer.print( "{" );
-
-		// write attributes
 		
-		final NamedNodeMap attrs = aNode.getAttributes();
-		for ( int i=0;  i < attrs.getLength();  i++)
-		{
-			if ( i > 0 )
-			{
-				this.writer.print(",");
-			}
-			
-			final Node n = attrs.item(i);
-			this.writer.print("\"");
-			this.writer.print(n.getNodeName());
-			this.writer.print("\":");
-			this.writer.print(this.getJsonValue(n.getNodeValue()));
-		}
-		
-		boolean needsComma = (attrs.getLength() > 0);
-
-		// write node value
-	
-		String nodeText;
-		if ( aDoc.containsNode(aNode, Node.CDATA_SECTION_NODE) )
-		{
-			nodeText = aDoc.getCDATAContent(aNode);
-		}
-		else
-		{
-			nodeText = aDoc.getNodeText(aNode);			
-		}
-		
-		if ( nodeText.length() > 0 )
-		{
-			if ( needsComma )
-			{
-				this.writer.print(",");
-			}
-			
-			needsComma = true;
-
-			this.writer.print("\"nodeText\":");
-			this.writer.print(this.getJsonValue(nodeText));
-		}
-		
-		// write children
-		
-		final NodeList nl = aNode.getChildNodes();
-
-		final Map<String, Integer> childCounters = new HashMap<String, Integer>();
-		for ( int i=0;  i < nl.getLength();  i++)
-		{
-			final Node n = nl.item(i);
-			if ( n instanceof Element )
-			{
-				Integer childCount = childCounters.get( n.getNodeName() );
-				if ( childCount == null )
-				{
-					childCount = 1; 
-				}
-				else
-				{
-					childCount = childCount + 1;
-				}
-				
-				childCounters.put( n.getNodeName(), childCount );
-			}
-		}
-		
-		for ( String childName : childCounters.keySet() )
-		{
-			final Integer childCount = childCounters.get(childName);
-			
-			if ( needsComma )
-			{
-				this.writer.print(",");
-			}
-
-			needsComma = true;
-			
-			this.writer.print("\"");
-			this.writer.print(childName);
-			this.writer.print("\":");
-
-			if ( childCount > 1 )
-			{
-				this.writer.print("[");				
-			}
-
-			// do any children contain more than CDATA sections or Text nodes?
-			
-			int attrCount = 0;
-			int elementCount = 0;
-			
-			for ( int i=0;  i < nl.getLength();  i++)
-			{
-				final Node n = nl.item(i);
-				if ( childName.equals(n.getNodeName()) )
-				{
-					attrCount += n.getAttributes().getLength();
-					elementCount += aDoc.countChildNodesByType( n, Node.ELEMENT_NODE );
-				}
-			}
-			
-			int itemCount = 0;
-			for ( int i=0;  i < nl.getLength();  i++)
-			{
-				final Node n = nl.item(i);
-
-				if ( !childName.equals(n.getNodeName()) )
-				{
-					continue;
-				}
-				
-				if ( itemCount++ > 0 )
-				{
-					this.writer.print(",");						
-				}
-
-				if ( (attrCount > 0) || (elementCount > 0) )
-				{
-					this.print( aDoc, n );
-				}
-				else
-				{
-					if ( aDoc.containsNode(n, Node.CDATA_SECTION_NODE) )
-					{
-						nodeText = aDoc.getCDATAContent(n);
-					}
-					else
-					{
-						nodeText = aDoc.getNodeText(n);			
-					}
-					
-					this.writer.print(this.getJsonValue(nodeText));
-				}
-			}
-
-			if ( childCount > 1 )
-			{
-				this.writer.print("]");
-			}
-		}
-		
-		this.writer.print( "}" );
-	}
-	
 	/**
 	 * Get the JSON equivalent of the stated text.
 	 * 

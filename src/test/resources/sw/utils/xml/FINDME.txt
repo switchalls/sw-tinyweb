@@ -1,1 +1,0 @@
-Resource to allow Junit(s) to discover their data model location

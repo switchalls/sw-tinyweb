@@ -1,3 +1,3 @@
 # Tiny web server
 
-For embedded use only
+Small lightweight webserver for embedded use only
