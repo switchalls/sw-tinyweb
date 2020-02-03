@@ -1,6 +1,6 @@
 # Tiny web server
 
-A simple HTTP 1.1 server designed for use on low powered embedded platforms.
+A simple HTTP 1.1 server designed for use on low powered embedded platforms, eg. Android.
 
 ## Building
 
