@@ -8,50 +8,36 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
-/**
- * A request dispatcher.
- * 
- * @author $Author: $
- * @version $Revision: $
- */
-public class TinyWebRequestDispatcher implements RequestDispatcher
-{
-	private final String servletPath;
-	private final Servlet targetServlet;
-	
-	/**
-	 * Constructor.
-	 * 
-	 * @param aServlet The target servlet
-	 * @param aServletPath The servlet path
-	 */
-	public TinyWebRequestDispatcher(Servlet aServlet, String aServletPath)
-	{
-		this.targetServlet = aServlet;
-		this.servletPath = aServletPath;
-	}
-	
-	@Override
-	public void forward(ServletRequest aRequest, ServletResponse aResponse)
-	throws ServletException, IOException
-	{
-		if ( aResponse.isCommitted() )
-		{
-			throw new IllegalStateException( "HTTP response already committed" );
-		}
+public class TinyWebRequestDispatcher implements RequestDispatcher {
+    private final String servletPath;
 
-		((TinyWebRequest)aRequest).changeServletPath( this.servletPath );
+    private final Servlet targetServlet;
 
-		aResponse.reset();
-				
-		this.targetServlet.service( aRequest, aResponse );
-	}
+    public TinyWebRequestDispatcher(Servlet aServlet, String aServletPath) {
+        this.targetServlet = aServlet;
+        this.servletPath = aServletPath;
+    }
 
-	@Override
-	public void include(ServletRequest aRequest, ServletResponse aResponse)
-	throws ServletException, IOException
-	{
-		this.targetServlet.service( aRequest, aResponse );
-	}
+    @Override
+    public void forward(ServletRequest aRequest, ServletResponse aResponse)
+            throws ServletException, IOException {
+
+        if (aResponse.isCommitted()) {
+            throw new IllegalStateException("HTTP response already committed");
+        }
+
+        ((TinyWebRequest) aRequest).changeServletPath(this.servletPath);
+
+        aResponse.reset();
+
+        this.targetServlet.service(aRequest, aResponse);
+    }
+
+    @Override
+    public void include(ServletRequest aRequest, ServletResponse aResponse)
+            throws ServletException, IOException {
+
+        this.targetServlet.service(aRequest, aResponse);
+    }
 
 }

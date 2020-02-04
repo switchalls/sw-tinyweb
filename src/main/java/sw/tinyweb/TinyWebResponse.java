@@ -25,522 +25,445 @@ import sw.tinyweb.utils.HttpHeaderUtils;
 
 /**
  * A single HTTP response.
- * 
- * @author $Author: $
- * @version $Revision: $
  */
-public class TinyWebResponse implements HttpServletResponse
-{
-	private static final Logger LOGGER = Logger.getLogger( TinyWebResponse.class );
+public class TinyWebResponse implements HttpServletResponse {
 
-	/** Buffer size. */
-	public static final int DEFAULT_BUFFER_SIZE = (4 * 1024); // 4K buffer
-	
-	/**
-	 * Google Chrome is very particular about CRLF usage in chunked responses.
-	 * 
-	 * <p>According the the spec, chunked format is ...
-	 * <pre>
-	 *     &lt;chunk size as HEX>CRLF
-	 *     &lt;chunk content as byte stream>CRLF
-	 *     ...
-	 *     0CRLF
-	 *     CRLF
-	 * </pre>
-	 * </p>
-	 */
-	private static final byte[] CRLF = "\r\n".getBytes();
-	 
-	/** Buffer that auto writes content to the HTTP output stream when running out of capacity. */
-	protected class FixedSizeBuffer extends ByteArrayOutputStream
-	{
-		@Override
-		public synchronized void close() throws IOException
-		{
-			// stream will be closed by TinyWeb main loop
-		}
-		
-		@Override
-		public synchronized void flush() throws IOException
-		{
-			flushBuffer();
-		}
-		
-		@Override
-		public synchronized void write(int aValue)
-		{
-			super.write(aValue);
+    private static final Logger LOGGER = Logger.getLogger(TinyWebResponse.class);
 
-			if ( this.size() > getBufferSize() )
-			{
-				this.flush_ignoreError();
-			}
-		}
-		
-		@Override
-	    public synchronized void write(byte aBuf[], int aOffset, int aLen)
-	    {
-			super.write( aBuf, aOffset, aLen );
+    public static final int DEFAULT_BUFFER_SIZE = (4 * 1024); // 4K buffer
 
-			if ( this.size() > getBufferSize() )
-			{
-				this.flush_ignoreError();
-			}
-	    }
-		
-		private void flush_ignoreError()
-		{
-			try
-			{
-				this.flush();
-			}
-			catch (IOException e)
-			{
-				LOGGER.error( "Cannot flush buffer to HTTP output stream", e );
-			}
-		}
-	}
-	
-	private final FixedSizeBuffer buffer = new FixedSizeBuffer();
-	private int bufferSize = DEFAULT_BUFFER_SIZE;
-	private boolean chunkedOutput;
-	private boolean committed;
-	private final List<Cookie> cookies = new ArrayList<Cookie>();
-	private final Map<String, String> headers = new HashMap<String, String>();
-	private Locale locale;
-	private final OutputStream outputStream;
-	private final HttpServletRequest servletRequest;
-	private int statusCode;
-	private String statusMessage;
-	
-	/**
-	 * Constructor.
-	 * 
-	 * @param aRequest The HTTP request
-	 * @param aOut The output stream
-	 */
-	public TinyWebResponse(HttpServletRequest aRequest, OutputStream aOut)
-	{
-		this.outputStream = aOut;
-		this.servletRequest = aRequest;
-	
-		this.reset();
-		
-		this.setCharacterEncoding( "UTF-8" );
-		this.setContentType( "text/html" );
-		this.setLocale(Locale.getDefault());
-	}
-	
-	@Override
-	public String getCharacterEncoding()
-	{
-		return this.headers.get("Character-Encoding");
-	}
+    /**
+     * Google Chrome is very particular about CRLF usage in chunked responses.
+     *
+     * <p>
+     * According the the spec, chunked format is ...
+     * <pre>
+     *     &lt;chunk size as HEX>CRLF
+     *     &lt;chunk content as byte stream>CRLF
+     *     ...
+     *     0CRLF
+     *     CRLF
+     * </pre>
+     * </p>
+     */
+    private static final byte[] CRLF = "\r\n".getBytes();
 
-	@Override
-	public String getContentType()
-	{
-		return this.headers.get("Content-Type");
-	}
+    /** Buffer that auto writes content to the HTTP output stream when running out of capacity. */
+    protected class FixedSizeBuffer extends ByteArrayOutputStream {
+        @Override
+        public synchronized void close() throws IOException {
+            // stream will be closed by TinyWeb main loop
+        }
 
-	@Override
-	public ServletOutputStream getOutputStream()
-	throws IOException
-	{
-		return new ServletOutputStream()
-		{
-			@Override
-			public void close() throws IOException
-			{
-				buffer.close();
-			}
-			
-			@Override
-			public void flush() throws IOException
-			{
-				buffer.flush();
-			}
+        @Override
+        public synchronized void flush() throws IOException {
+            flushBuffer();
+        }
 
-			@Override
-			public void write(int aValue) throws IOException
-			{
-				buffer.write(aValue);
-			}
-		};
-	}
-	
-	@Override
-	public void setCharacterEncoding(String aEncoding)
-	{
-		this.setHeader( "Character-Encoding", aEncoding );
-	}
-	
-	@Override
-	public void setContentType(String aType)
-	{
-		this.setHeader( "Content-Type", aType );
-	}
+        @Override
+        public synchronized void write(int aValue) {
+            super.write(aValue);
 
-	@Override
-	public void setHeader(String aName, String aValue)
-	{
-		this.headers.put( aName, aValue );
-	}
+            if (this.size() > getBufferSize()) {
+                this.flush_ignoreError();
+            }
+        }
 
-	@Override
-	public void setStatus(int aCode)
-	{
-		this.statusCode = aCode;
-	}
+        @Override
+        public synchronized void write(byte aBuf[], int aOffset, int aLen) {
+            super.write(aBuf, aOffset, aLen);
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @deprecated As of version 2.1, replaced by {@link #sendError(int, String)}
-	 */
-	@Deprecated
-	@Override
-	public void setStatus(int aCode, String aMsg)
-	{
-		throw new UnsupportedOperationException( "HttpServletResponse.setStatus(int, String) not supported" );
-	}
+            if (this.size() > getBufferSize()) {
+                this.flush_ignoreError();
+            }
+        }
 
-	@Override
-	public void flushBuffer()
-	throws IOException
-	{		
-		if ( !this.committed )
-		{
-			this.writeResponseHeader();
-			this.committed = true;
-		}
+        private void flush_ignoreError() {
+            try {
+                this.flush();
+            } catch (final IOException e) {
+                LOGGER.error("Cannot flush buffer to HTTP output stream", e);
+            }
+        }
+    }
 
-		try
-		{
-			final byte[] data = this.buffer.toByteArray();
-			if ( !this.chunkedOutput )
-			{
-				this.outputStream.write( data );
-			}
-			else if ( data.length > 0 )
-			{
-				// EOF is marked with a empty chunk. Therefore, must NEVER
-				// create a zero sized chunk whilst stream is open.
-				
-				final String chunkSize = Integer.toHexString( this.buffer.size() );
-				this.outputStream.write( chunkSize.getBytes("UTF-8") );
-				this.outputStream.write( CRLF );
-				this.outputStream.write( data );
-				this.outputStream.write( CRLF );
-			}
-		}
-		finally
-		{
-			this.resetBuffer();
-		}
-	}
+    private final FixedSizeBuffer buffer = new FixedSizeBuffer();
 
-	@Override
-	public int getBufferSize()
-	{
-		return this.bufferSize;
-	}
+    private int bufferSize = DEFAULT_BUFFER_SIZE;
 
-	@Override
-	public Locale getLocale()
-	{
-		return this.locale;
-	}
+    private boolean chunkedOutput;
 
-	@Override
-	public PrintWriter getWriter()
-	throws IOException 
-	{		
-		return new PrintWriter( this.buffer, true );
-	}
+    private boolean committed;
 
-	@Override
-	public boolean isCommitted()
-	{
-		return this.committed;
-	}
+    private final List<Cookie> cookies = new ArrayList<Cookie>();
 
-	@Override
-	public void reset()
-	{
-		if ( this.committed )
-		{
-			throw new IllegalStateException( "Cannot reset output stream after it has been committed" );
-		}
-		
-		this.buffer.reset();
-		this.cookies.clear();
-		this.headers.clear();
-		this.locale = Locale.getDefault();
-		this.statusCode = SC_OK;
-		this.statusMessage = "OK";
-	}
+    private final Map<String, String> headers = new HashMap<String, String>();
 
-	@Override
-	public void resetBuffer()
-	{
-		this.buffer.reset();
-	}
+    private Locale locale;
 
-	@Override
-	public void setBufferSize(int aSize)
-	{
-		this.bufferSize = aSize;
-	}
+    private final OutputStream outputStream;
 
-	@Override
-	public void setContentLength(int aLength)
-	{
-		this.setIntHeader( "Content-Length", aLength );
-	}
+    private final HttpServletRequest servletRequest;
 
-	@Override
-	public void setDateHeader(String aName, long aValue)
-	{
-        final String dateStr = HttpHeaderUtils.getInstance().formatDate( new Date(aValue), this.getLocale() );
-        this.setHeader( aName, dateStr );
-	}
+    private int statusCode;
 
-	@Override
-	public void setIntHeader(String aName, int aValue)
-	{
-		this.setHeader( aName, Integer.toString(aValue) );
-	}
+    private String statusMessage;
 
-	@Override
-	public void setLocale(Locale aLocale)
-	{
-		this.locale = aLocale;
-	}
+    public TinyWebResponse(HttpServletRequest aRequest, OutputStream aOut) {
+        this.outputStream = aOut;
+        this.servletRequest = aRequest;
 
-	@Override
-	public void addCookie(Cookie aCookie)
-	{
-		this.cookies.add( aCookie );
-	}
+        this.reset();
 
-	@Override
-	public void addDateHeader(String aName, long aValue)
-	{
-		this.setDateHeader( aName, aValue );
-	}
+        this.setCharacterEncoding("UTF-8");
+        this.setContentType("text/html");
+        this.setLocale(Locale.getDefault());
+    }
 
-	@Override
-	public void addHeader(String aName, String aValue)
-	{
-		this.setHeader( aName, aValue );
-	}
+    @Override
+    public String getCharacterEncoding() {
+        return this.headers.get("Character-Encoding");
+    }
 
-	@Override
-	public void addIntHeader(String aName, int aValue)
-	{
-		this.setIntHeader( aName, aValue );
-	}
+    @Override
+    public String getContentType() {
+        return this.headers.get("Content-Type");
+    }
 
-	@Override
-	public boolean containsHeader(String aName)
-	{
-		return this.headers.containsKey(aName);
-	}
+    @Override
+    public ServletOutputStream getOutputStream() throws IOException {
 
-	@Override
-	public String encodeRedirectURL(String aURL)
-	{
-		try
-		{
-			return URLEncoder.encode( aURL, "UTF-8" );
-		}
-		catch (UnsupportedEncodingException e)
-		{
-			// ignore
-		}
-		return aURL;
-	}
+        return new ServletOutputStream() {
+            @Override
+            public void close() throws IOException {
+                buffer.close();
+            }
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @deprecated As of version 2.1, replaced by {@link #encodeRedirectURL(String)}
-	 */
-	@Deprecated
-	@Override
-	public String encodeRedirectUrl(String aURL)
-	{
+            @Override
+            public void flush() throws IOException {
+                buffer.flush();
+            }
+
+            @Override
+            public void write(int aValue) throws IOException {
+                buffer.write(aValue);
+            }
+        };
+    }
+
+    @Override
+    public void setCharacterEncoding(String aEncoding) {
+        this.setHeader("Character-Encoding", aEncoding);
+    }
+
+    @Override
+    public void setContentType(String aType) {
+        this.setHeader("Content-Type", aType);
+    }
+
+    @Override
+    public void setHeader(String aName, String aValue) {
+        this.headers.put(aName, aValue);
+    }
+
+    @Override
+    public void setStatus(int aCode) {
+        this.statusCode = aCode;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated As of version 2.1, replaced by {@link #sendError(int, String)}
+     */
+    @Deprecated
+    @Override
+    public void setStatus(int aCode, String aMsg) {
+        throw new UnsupportedOperationException("HttpServletResponse.setStatus(int, String) not supported");
+    }
+
+    @Override
+    public void flushBuffer() throws IOException {
+        if (!this.committed) {
+            this.writeResponseHeader();
+            this.committed = true;
+        }
+
+        try {
+            final byte[] data = this.buffer.toByteArray();
+            if (!this.chunkedOutput) {
+                this.outputStream.write(data);
+
+            } else if (data.length > 0) {
+                // EOF is marked with a empty chunk. Therefore, must NEVER
+                // create a zero sized chunk whilst stream is open.
+
+                final String chunkSize = Integer.toHexString(this.buffer.size());
+                this.outputStream.write(chunkSize.getBytes("UTF-8"));
+                this.outputStream.write(CRLF);
+                this.outputStream.write(data);
+                this.outputStream.write(CRLF);
+            }
+
+        } finally {
+            this.resetBuffer();
+        }
+    }
+
+    @Override
+    public int getBufferSize() {
+        return this.bufferSize;
+    }
+
+    @Override
+    public Locale getLocale() {
+        return this.locale;
+    }
+
+    @Override
+    public PrintWriter getWriter() throws IOException {
+        return new PrintWriter(this.buffer, true);
+    }
+
+    @Override
+    public boolean isCommitted() {
+        return this.committed;
+    }
+
+    @Override
+    public void reset() {
+        if (this.committed) {
+            throw new IllegalStateException("Cannot reset output stream after it has been committed");
+        }
+
+        this.buffer.reset();
+        this.cookies.clear();
+        this.headers.clear();
+        this.locale = Locale.getDefault();
+        this.statusCode = SC_OK;
+        this.statusMessage = "OK";
+    }
+
+    @Override
+    public void resetBuffer() {
+        this.buffer.reset();
+    }
+
+    @Override
+    public void setBufferSize(int aSize) {
+        this.bufferSize = aSize;
+    }
+
+    @Override
+    public void setContentLength(int aLength) {
+        this.setIntHeader("Content-Length", aLength);
+    }
+
+    @Override
+    public void setDateHeader(String aName, long aValue) {
+        final String dateStr = HttpHeaderUtils.getInstance().formatDate(new Date(aValue), this.getLocale());
+        this.setHeader(aName, dateStr);
+    }
+
+    @Override
+    public void setIntHeader(String aName, int aValue) {
+        this.setHeader(aName, Integer.toString(aValue));
+    }
+
+    @Override
+    public void setLocale(Locale aLocale) {
+        this.locale = aLocale;
+    }
+
+    @Override
+    public void addCookie(Cookie aCookie) {
+        this.cookies.add(aCookie);
+    }
+
+    @Override
+    public void addDateHeader(String aName, long aValue) {
+        this.setDateHeader(aName, aValue);
+    }
+
+    @Override
+    public void addHeader(String aName, String aValue) {
+        this.setHeader(aName, aValue);
+    }
+
+    @Override
+    public void addIntHeader(String aName, int aValue) {
+        this.setIntHeader(aName, aValue);
+    }
+
+    @Override
+    public boolean containsHeader(String aName) {
+        return this.headers.containsKey(aName);
+    }
+
+    @Override
+    public String encodeRedirectURL(String aURL) {
+        try {
+            return URLEncoder.encode(aURL, "UTF-8");
+
+        } catch (final UnsupportedEncodingException e) {
+            // ignore
+        }
+
+        return aURL;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated As of version 2.1, replaced by {@link #encodeRedirectURL(String)}
+     */
+    @Deprecated
+    @Override
+    public String encodeRedirectUrl(String aURL) {
         throw new UnsupportedOperationException("HttpServletResponse.encodeRedirectUrl() not supported");
-	}
+    }
 
-	@Override
-	public String encodeURL(String aURL)
-	{
-		try
-		{
-			return URLEncoder.encode( aURL, "UTF-8" );
-		}
-		catch (UnsupportedEncodingException e)
-		{
-			// ignore
-		}
-		return aURL;
-	}
+    @Override
+    public String encodeURL(String aURL) {
+        try {
+            return URLEncoder.encode(aURL, "UTF-8");
 
-	/**
-	 * {@inheritDoc}
-	 * 
-	 * @deprecated As of version 2.1, replaced by {@link #encodeURL(String)}
-	 */
-	@Deprecated
-	@Override
-	public String encodeUrl(String aURL)
-	{
+        } catch (final UnsupportedEncodingException e) {
+            // ignore
+        }
+        return aURL;
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated As of version 2.1, replaced by {@link #encodeURL(String)}
+     */
+    @Deprecated
+    @Override
+    public String encodeUrl(String aURL) {
         throw new UnsupportedOperationException("HttpServletResponse.encodeUrl() not supported");
-	}
+    }
 
-	@Override
-	public void sendError(int aCode)
-	throws IOException
-	{
-		this.setStatus( aCode );
-		this.closeStream();		
-	}
+    @Override
+    public void sendError(int aCode) throws IOException {
+        this.setStatus(aCode);
+        this.closeStream();
+    }
 
-	@Override
-	public void sendError(int aCode, String aMsg)
-	throws IOException
-	{
-		this.statusCode = aCode;
-		this.statusMessage = aMsg;
-		this.closeStream();		
-	}
+    @Override
+    public void sendError(int aCode, String aMsg) throws IOException {
+        this.statusCode = aCode;
+        this.statusMessage = aMsg;
+        this.closeStream();
+    }
 
-	@Override
-	public void sendRedirect(String aURL)
-	throws IOException
-	{
+    @Override
+    public void sendRedirect(String aURL) throws IOException {
         throw new UnsupportedOperationException("HttpServletResponse.sendRedirect() not supported");
-	}
-	
-	/** @return the buffered content */
-	public byte[] getBufferContent()
-	{
-		return this.buffer.toByteArray();
-	}
+    }
 
-	/**
-	 * Find the stated cookie.
-	 * 
-	 * @param aName The cookie identifier
-	 * @return the cookie or null (not found)
-	 */
-	public Cookie findCookie(String aName)
-	{
-		for ( Cookie c : this.cookies )
-		{
-			if ( c.getName().equals(aName) )
-			{
-				return c;
-			}
-		}
-		return null;
-	}
+    /** @return the buffered content */
+    public byte[] getBufferContent() {
+        return this.buffer.toByteArray();
+    }
 
-	/** Close the output stream. */
-	public void closeStream()
-	{
-		try
-		{
-			this.flushBuffer();
-			
-			if ( this.chunkedOutput )
-			{
-				this.outputStream.write( '0' );  // zero bytes remaining
-				this.outputStream.write( CRLF );
-				this.outputStream.write( CRLF );
-			}
-		}
-		catch (IOException e)
-		{
-			LOGGER.error("Cannot commit HttpResponseServlet changes", e);
-		}
-				
-		try
-		{
-			this.outputStream.close();
-		}
-		catch (IOException e)
-		{
-			LOGGER.error("Cannot close HTTP response stream", e);
-		}
-	}
-	
-	/**
-	 * Write the HTTP response header.
-	 * 
-	 * @throws IOException when the headers cannot be sent
-	 */
-	protected void writeResponseHeader()
-	throws IOException
-	{		
-		final ByteArrayOutputStream header = new ByteArrayOutputStream();
-		final PrintWriter writer = new PrintWriter( header );
-		writer.print( "HTTP/1.1 " );
-		writer.print( this.statusCode );
-		writer.print( " " );
-		writer.println( this.statusMessage );
+    /**
+     * Find the stated cookie.
+     *
+     * @param aName
+     *            The cookie identifier
+     * @return the cookie or null (not found)
+     */
+    public Cookie findCookie(String aName) {
+        for (final Cookie c : this.cookies) {
+            if (c.getName().equals(aName)) {
+                return c;
+            }
+        }
+        return null;
+    }
 
-		if ( this.statusCode < 400 ) // start of error codes
-		{
-			if ( this.findCookie(TinyWebSession.SESSION_ID) == null )
-			{
-				// avoid creating unnecessary HTTP sessions
-				
-				final HttpSession s = this.servletRequest.getSession( false );
-				if ( s != null )
-				{
-					final TinyWebCookie c = new TinyWebCookie( TinyWebSession.SESSION_ID, s.getId() );
-					
-					// allow cookie to be used in cross-domain javascript
-					c.setHttpOnly( false );
-					
-					this.addCookie( c );
-				}
-			}
-			
-			if ( !this.containsHeader("Content-Length") )
-			{
-				// response size unknown, so chunk data to client
-				this.addHeader( "Transfer-Encoding", "chunked" );
-				this.chunkedOutput = true;
-			}
-	
-			for ( String name : this.headers.keySet() )
-			{
-				writer.print( name );
-				writer.print( ": " );
-				writer.println( this.headers.get(name) );			
-			}
-			
-			final HttpHeaderUtils utils = HttpHeaderUtils.getInstance();
-			for ( Cookie c : this.cookies )
-			{
-				utils.writeSetCookie( writer, c, this.locale );
-			}
-		}
-		
-		writer.close();
-		
-		if (LOGGER.isDebugEnabled())
-		{
-			final String s = new String(header.toByteArray(), "UTF-8");
-			LOGGER.debug(s);
-		}
-		
-		this.outputStream.write( header.toByteArray() );
-		this.outputStream.write( CRLF );
-	}
+    /** Close the output stream. */
+    public void closeStream() {
+        try {
+            this.flushBuffer();
+
+            if (this.chunkedOutput) {
+                this.outputStream.write('0'); // zero bytes remaining
+                this.outputStream.write(CRLF);
+                this.outputStream.write(CRLF);
+            }
+
+        } catch (final IOException e) {
+            LOGGER.error("Cannot commit HttpResponseServlet changes", e);
+        }
+
+        try {
+            this.outputStream.close();
+
+        } catch (final IOException e) {
+            LOGGER.error("Cannot close HTTP response stream", e);
+        }
+    }
+
+    /**
+     * Write the HTTP response header.
+     *
+     * @throws IOException
+     *             when the headers cannot be sent
+     */
+    private void writeResponseHeader() throws IOException {
+        final ByteArrayOutputStream header = new ByteArrayOutputStream();
+        final PrintWriter writer = new PrintWriter(header);
+        writer.print("HTTP/1.1 ");
+        writer.print(this.statusCode);
+        writer.print(" ");
+        writer.println(this.statusMessage);
+
+        if (this.statusCode < 400) // start of error codes
+        {
+            if (this.findCookie(TinyWebSession.SESSION_ID) == null) {
+                // avoid creating unnecessary HTTP sessions
+
+                final HttpSession s = this.servletRequest.getSession(false);
+                if (s != null) {
+                    final TinyWebCookie c = new TinyWebCookie(TinyWebSession.SESSION_ID, s.getId());
+
+                    // allow cookie to be used in cross-domain javascript
+                    c.setHttpOnly(false);
+
+                    this.addCookie(c);
+                }
+            }
+
+            if (!this.containsHeader("Content-Length")) {
+                // response size unknown, so chunk data to client
+                this.addHeader("Transfer-Encoding", "chunked");
+                this.chunkedOutput = true;
+            }
+
+            for (final String name : this.headers.keySet()) {
+                writer.print(name);
+                writer.print(": ");
+                writer.println(this.headers.get(name));
+            }
+
+            final HttpHeaderUtils utils = HttpHeaderUtils.getInstance();
+            for (final Cookie c : this.cookies) {
+                utils.writeSetCookie(writer, c, this.locale);
+            }
+        }
+
+        writer.close();
+
+        if (LOGGER.isDebugEnabled()) {
+            final String s = new String(header.toByteArray(), "UTF-8");
+            LOGGER.debug(s);
+        }
+
+        this.outputStream.write(header.toByteArray());
+        this.outputStream.write(CRLF);
+    }
 
 }

@@ -12,8 +12,9 @@ import sw.tinyweb.utils.IteratorEnumeration;
 
 /**
  * HTTP servlet configuration.
- * 
- * <p>From <code>web-config.xml</code> ...
+ *
+ * <p>
+ * From <code>web-config.xml</code> ...
  * <pre>
  *     &lt;servlet>
  *         &lt;servlet-name>MessageBrokerServlet&lt;/servlet-name>
@@ -24,137 +25,100 @@ import sw.tinyweb.utils.IteratorEnumeration;
  *         &lt;/init-param>
  *     &lt;/servlet>
  * </pre>
- * 
- * @author $Author: $
- * @version $Revision: $
  */
-public class TinyWebServletConfig implements ServletConfig
-{
-	private ExecutionOptions executionOption = ExecutionOptions.NO_THREAD;
-	private final Map<String, String> initParams = new HashMap<String, String>();
-	private ServletContext servletContext;
-	private String servletClass;
-	private String servletName;
+public class TinyWebServletConfig implements ServletConfig {
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param aClazz The servlet class
-	 */
-	public TinyWebServletConfig(Class<? extends Servlet> aClazz)
-	{
-		this( aClazz, ExecutionOptions.NO_THREAD );
-	}
+    private ExecutionOptions executionOption = ExecutionOptions.NO_THREAD;
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param aClazz The servlet class
-	 * @param aOptions The TinyWeb execution options
-	 */
-	public TinyWebServletConfig(Class<? extends Servlet> aClazz, ExecutionOptions aOptions)
-	{
-		this( aClazz, aOptions, null );
-	}
+    private final Map<String, String> initParams = new HashMap<String, String>();
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param aClazz The servlet class
-	 * @param aOptions The TinyWeb execution options
-	 * @param aName The servlet name or null (use class name)
-	 */
-	public TinyWebServletConfig(Class<? extends Servlet> aClazz, ExecutionOptions aOptions, String aName)
-	{
-		this.setServletClass( aClazz.getName() );
-		this.setExecutionOption( aOptions );
-		
-		if ( aName != null )
-		{
-			this.setServletName( aName );			
-		}
-		else
-		{
-			final int ipos = aClazz.getName().lastIndexOf(".");
-			this.setServletName( aClazz.getName().substring(ipos+1) );
-		}
-	}
+    private ServletContext servletContext;
 
-	@Override
-	public String getInitParameter(String aName)
-	{
-		return this.initParams.get( aName );
-	}
+    private String servletClass;
 
-	@Override
-	public Enumeration<String> getInitParameterNames()
-	{
-		return new IteratorEnumeration<String>( this.initParams.keySet() );
-	}
+    private String servletName;
 
-	@Override
-	public ServletContext getServletContext()
-	{
-		return this.servletContext;
-	}
+    public TinyWebServletConfig(Class<? extends Servlet> aClazz) {
+        this(aClazz, ExecutionOptions.NO_THREAD);
+    }
 
-	@Override
-	public String getServletName()
-	{
-		return this.servletName;
-	}
+    public TinyWebServletConfig(Class<? extends Servlet> aClazz, ExecutionOptions aOptions) {
+        this(aClazz, aOptions, null);
+    }
 
-	/** @return the options */
-	public ExecutionOptions getExecutionOption()
-	{
-		return this.executionOption;
-	}
-	
-	/** @param aOption The new value */
-	public void setExecutionOption(ExecutionOptions aOption)
-	{
-		this.executionOption = aOption;
-	}
+    public TinyWebServletConfig(Class<? extends Servlet> aClazz, ExecutionOptions aOptions, String aName) {
+        this.setServletClass(aClazz.getName());
+        this.setExecutionOption(aOptions);
 
-	/** @return the class name */
-	public String getServletClass()
-	{
-		return this.servletClass;
-	}
-	
-	/** @param aClazz The new value */
-	public void setServletClass(String aClazz)
-	{
-		this.servletClass = aClazz;
-	}
+        if (aName != null) {
+            this.setServletName(aName);
+        } else {
+            final int ipos = aClazz.getName().lastIndexOf(".");
+            this.setServletName(aClazz.getName().substring(ipos + 1));
+        }
+    }
 
-	/** @param aContext The new value */
-	public void setServletContext(ServletContext aContext)
-	{
-		this.servletContext = aContext;
-	}
-	
-	/** @param aName The new value */
-	public void setServletName(String aName)
-	{
-		this.servletName = aName;
-	}
+    @Override
+    public String getInitParameter(String aName) {
+        return this.initParams.get(aName);
+    }
 
-	/** @return the parameters */
-	public Map<String, String> getInitParams()
-	{
-		return this.initParams;
-	}
+    @Override
+    public Enumeration<String> getInitParameterNames() {
+        return new IteratorEnumeration<String>(this.initParams.keySet());
+    }
 
-	/**
-	 * Add a new parameter.
-	 * 
-	 * @param aName The parameter name
-	 * @param aValue The parameter value
-	 */
-	public void addInitParam(String aName, String aValue)
-	{
-		this.initParams.put( aName, aValue );
-	}	
+    @Override
+    public ServletContext getServletContext() {
+        return this.servletContext;
+    }
+
+    @Override
+    public String getServletName() {
+        return this.servletName;
+    }
+
+    /** @return the options */
+    public ExecutionOptions getExecutionOption() {
+        return this.executionOption;
+    }
+
+    public void setExecutionOption(ExecutionOptions aOption) {
+        this.executionOption = aOption;
+    }
+
+    /** @return the class name */
+    public String getServletClass() {
+        return this.servletClass;
+    }
+
+    public void setServletClass(String aClazz) {
+        this.servletClass = aClazz;
+    }
+
+    public void setServletContext(ServletContext aContext) {
+        this.servletContext = aContext;
+    }
+
+    public void setServletName(String aName) {
+        this.servletName = aName;
+    }
+
+    /** @return the parameters */
+    public Map<String, String> getInitParams() {
+        return this.initParams;
+    }
+
+    /**
+     * Add a new parameter.
+     *
+     * @param aName
+     *            The parameter name
+     * @param aValue
+     *            The parameter value
+     */
+    public void addInitParam(String aName, String aValue) {
+        this.initParams.put(aName, aValue);
+    }
 
 }

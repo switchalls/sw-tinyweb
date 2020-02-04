@@ -6,45 +6,32 @@ import java.util.Iterator;
 
 /**
  * Utility for converting a {@link Collection} to an enumeration.
- * 
- * @param <T> The collection type
+ *
+ * @param <T>
+ *            The collection type
  * @author $Author: $
  * @version $Revision: $
  */
-public class IteratorEnumeration<T> implements Enumeration<T>
-{
-	private Iterator<T> iterator;
+public class IteratorEnumeration<T> implements Enumeration<T> {
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param aList The collection
-	 */
-	public IteratorEnumeration(Collection<T> aList)
-	{
-		this( aList.iterator() );
-	}
+    private Iterator<T> iterator;
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param aIter The iterator
-	 */
-	public IteratorEnumeration(Iterator<T> aIter)
-	{
-		this.iterator = aIter;
-	}
+    public IteratorEnumeration(Collection<T> aList) {
+        this(aList.iterator());
+    }
 
-	@Override
-	public boolean hasMoreElements()
-	{
-		return this.iterator.hasNext();
-	}
+    public IteratorEnumeration(Iterator<T> aIter) {
+        this.iterator = aIter;
+    }
 
-	@Override
-	public T nextElement()
-	{
-		return this.iterator.next();
-	}
-	
+    @Override
+    public boolean hasMoreElements() {
+        return this.iterator.hasNext();
+    }
+
+    @Override
+    public T nextElement() {
+        return this.iterator.next();
+    }
+
 }
