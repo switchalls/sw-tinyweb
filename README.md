@@ -2,6 +2,10 @@
 
 A simple HTTP 1.1 server designed for use on low powered embedded platforms, eg. Android.
 
+[Jetty](https://www.eclipse.org/jetty/) would normally be used (see
+[baeldung tutorial](https://www.baeldung.com/jetty-embedded) for more information).
+But ... I wanted something smaller, where I could control caching / loading strategies. 
+
 ## Building
 
 ```bash
