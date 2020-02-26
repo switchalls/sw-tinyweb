@@ -4,7 +4,7 @@
     >
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>sw</groupId>
+    <groupId>sw.utils</groupId>
     <artifactId>sw-tinyweb</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
